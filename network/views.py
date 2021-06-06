@@ -42,6 +42,8 @@ def register(request):
     if request.method == "POST":
         username = request.POST["username"]
         email = request.POST["email"]
+        first_name = request.POST["first_name"]
+        last_name = request.POST["last_name"]
 
         # Ensure password matches confirmation
         password = request.POST["password"]
