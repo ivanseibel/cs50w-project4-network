@@ -8,6 +8,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from network.models import Post
 
 from .models import User
 
@@ -75,3 +76,34 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@csrf_exempt
+@csrf_exempt
+@login_required
+def create_post(request):
+
+    # Creating a new post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Get data from request
+    data = json.loads(request.body)
+
+    # Get user author
+    user = request.user
+
+    # Get contents of post
+    body = data.get("body", "")
+    if not body or body == "":
+        return JsonResponse({
+            "error": "Post must have a content."
+        }, status=400)
+
+    post = Post(
+        user=user,
+        body=body,
+    )
+    post.save()
+
+    return JsonResponse({"message": "Post created successfully."}, status=201)
