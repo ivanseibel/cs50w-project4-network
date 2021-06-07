@@ -9,6 +9,7 @@
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link href="{% static 'network/styles.css' %}" rel="stylesheet">
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 </head>
 
 <body>
@@ -22,12 +23,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#"><strong>{{ user.username }}</strong></a>
                 </li>
-                {% endif %}
                 <li class="nav-item">
-                    <!-- <a class="nav-link" id="btn-all-posts" href="{% url 'index' %}">All Posts</a> -->
                     <a class="nav-link" id="btn-all-posts" href="#">All Posts</a>
                 </li>
-                {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" id="btn-following" href="#">Following</a>
                 </li>

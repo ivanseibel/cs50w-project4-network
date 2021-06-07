@@ -1,16 +1,19 @@
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models.expressions import Case, When
+from django.db.models.fields import BooleanField, CharField
 from django.views.decorators.csrf import csrf_exempt
-from django.http.response import JsonResponse
-# from django.http import JsonResponse
+from django.http import JsonResponse
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from network.models import Post
+from django.core import serializers
+from django.db.models import Value
 
-from .models import User
+from .models import Following, User
 
 
 def index(request):
@@ -79,7 +82,6 @@ def register(request):
 
 
 @csrf_exempt
-@csrf_exempt
 @login_required
 def create_post(request):
 
@@ -107,3 +109,39 @@ def create_post(request):
     post.save()
 
     return JsonResponse({"message": "Post created successfully."}, status=201)
+
+
+@csrf_exempt
+@login_required
+def load_posts(request):
+
+    # List all posts must be via GET
+    if request.method != "GET":
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+    # Get user author
+    user = request.user
+
+    # Get following user list
+    following = Following.objects.filter(
+        user_id=user.id).values_list("follows_user", flat=True)
+
+    # Get posts from who I'm following
+    posts_from_following = Post.objects.values(
+        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id__in=following)
+
+    # Get my posts
+    posts_from_myself = Post.objects.values(
+        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id=user.id)
+
+    # Join posts following + my
+    all_posts = posts_from_following | posts_from_myself
+
+    # Return emails in reverse chronological order and add is_logged field
+    posts = all_posts.order_by("-created_at").all().annotate(is_logged=Case(
+        When(user__id=user.id,
+             then=Value(True)),
+        default=Value(False),
+        output_field=BooleanField()))
+
+    return JsonResponse(list(posts), safe=False)
