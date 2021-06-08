@@ -1,8 +1,8 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-<div id="content-all-posts" class="content">
-    <h1 id="all-posts-title">All Posts</h1>
+<div id="content-posts" class="content">
+    <h1 id="posts-title">All Posts</h1>
     {% if user.is_authenticated %}
     <div class="card" id="new-post-card">
         <form id="create-post-form">
@@ -15,15 +15,17 @@
     <div id="profile-card" hidden>
         Profile
     </div>
+    {% endif %}
 
     <div id="posts-list">
     </div>
     <hr>
-    {% endif %}
 </div>
 
-<div id="content-following" class="content" hidden>
+<!-- <div id="content-following" class="content" hidden>
     <h1>Following</h1>
-    <div class="card">following</div>
-</div>
+    <div id="following-posts-list">
+    </div>
+    <hr>
+</div> -->
 {% endblock %}
