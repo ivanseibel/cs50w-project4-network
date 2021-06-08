@@ -2,7 +2,7 @@
 
 {% block body %}
 <div id="content-all-posts" class="content">
-    <h1>All Posts</h1>
+    <h1 id="all-posts-title">All Posts</h1>
     {% if user.is_authenticated %}
     <div class="card" id="new-post-card">
         <form id="create-post-form">
@@ -11,8 +11,12 @@
             <input class="btn btn-primary" type="submit" id="post-btn" value="Post" disabled>
         </form>
     </div>
-    <div id="posts-list">
 
+    <div id="profile-card" hidden>
+        Profile
+    </div>
+
+    <div id="posts-list">
     </div>
     <hr>
     {% endif %}

@@ -127,15 +127,17 @@ def load_posts(request):
         user_id=user.id).values_list("follows_user", flat=True)
 
     # Get posts from who I'm following
-    posts_from_following = Post.objects.values(
-        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id__in=following)
+    # posts_from_following = Post.objects.values(
+    #     "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id__in=following)
+    all_posts = Post.objects.values(
+        "id", "body", "user__id", "user__username", "user__first_name", "created_at")
 
     # Get my posts
-    posts_from_myself = Post.objects.values(
-        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id=user.id)
+    # posts_from_myself = Post.objects.values(
+    #     "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id=user.id)
 
     # Join posts following + my
-    all_posts = posts_from_following | posts_from_myself
+    # all_posts = posts_from_following | posts_from_myself
 
     # Return emails in reverse chronological order and add is_logged field
     posts = all_posts.order_by("-created_at").all().annotate(is_logged=Case(
@@ -145,3 +147,89 @@ def load_posts(request):
         output_field=BooleanField()))
 
     return JsonResponse(list(posts), safe=False)
+
+
+@csrf_exempt
+@login_required
+def load_profile(request):
+
+    # List all posts must be via GET
+    if request.method != "GET":
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+    # Get logged user
+    user = request.user
+
+    # Get profile user
+    profile_user_id = request.GET["user_id"]
+
+    # Get posts
+    posts = Post.objects.values(
+        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id=profile_user_id)
+
+    # Get user data
+    number_of_following = Following.objects.filter(
+        user_id=profile_user_id).count()
+    number_of_followers = Following.objects.filter(
+        follows_user_id=profile_user_id).count()
+    profile_user = User.objects.get(pk=profile_user_id)
+    is_same_user = str(profile_user_id) == str(user.id)
+    is_following = Following.objects.filter(
+        user_id=user.id, follows_user_id=profile_user_id).count() == 1
+
+    profile = {
+        "user_first_name": profile_user.first_name,
+        "user_last_name": profile_user.last_name,
+        "following": number_of_following,
+        "followers": number_of_followers,
+        "is_same_user": is_same_user,
+        "is_following": is_following,
+        "user_id": profile_user_id,
+    }
+
+    # Return emails in reverse chronological order and add is_logged field
+    posts = posts.order_by("-created_at").all().annotate(is_logged=Case(
+        When(user__id=user.id,
+             then=Value(True)),
+        default=Value(False),
+        output_field=BooleanField()))
+
+    return JsonResponse({"profile": profile, "posts": list(posts)}, safe=False)
+
+
+@csrf_exempt
+@login_required
+def follow_unfollow(request):
+
+    # Creating a new post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Get data from request
+    data = json.loads(request.body)
+
+    # Get user author
+    user = request.user
+
+    # Get user_id to follow/unfollow
+    user_id = data.get("user_id", "")
+    if not user_id or user_id == "":
+        return JsonResponse({
+            "error": "You must provide an user id."
+        }, status=400)
+
+    # Get type follow/unfollow
+    type = data.get("type", "")
+    if not type or type == "":
+        return JsonResponse({
+            "error": "You must provide a type."
+        }, status=400)
+
+    if type == "follow":
+        follow = Following(user_id=user.id, follows_user_id=user_id)
+        follow.save()
+    else:
+        Following.objects.get(
+            user_id=user.id, follows_user_id=user_id).delete()
+
+    return JsonResponse({"message": "Success."}, status=200)
