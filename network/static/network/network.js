@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Use buttons to toggle between views
     const btn_all_posts = document.querySelector('#btn-all-posts');
     if (btn_all_posts) {
-        btn_all_posts.addEventListener('click', () => load_container('content-all-posts'));
+        btn_all_posts.addEventListener('click', () => load_container('all'));
     }
     const btn_following = document.querySelector('#btn-following');
     if (btn_following) {
-        btn_following.addEventListener('click', () => load_container('content-following'));
+        btn_following.addEventListener('click', () => load_container('following'));
     }
 
 
@@ -28,26 +28,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // By default, load all posts
     if (btn_all_posts) {
-        load_container('content-all-posts');
+        load_container('all');
     }
 });
 
-function load_container(container_id) {
+function load_container(type) {
 
-    // Show the mailbox and hide other views
-    const containers = document.querySelectorAll('.content');
-    containers.forEach(element => {
-        element.hidden = element.id !== container_id;
-    });
-
-    // Get posts
-    if (container_id === 'content-all-posts') {
-        document.querySelector("#all-posts-title").innerHTML = "All Posts";
-        document.querySelector("#profile-card").innerHTML = "";
+    // Get all posts
+    if (type === 'all') {
+        document.querySelector("#posts-title").innerHTML = "All Posts";
+        const profile_card = document.querySelector("#profile-card");
+        if (profile_card) {
+            profile_card.innerHTML = "";
+        }
         const new_post_body = document.querySelector('#new-post-body');
-        new_post_body.value = '';
-        new_post_body.focus();
-        get_posts();
+        if (new_post_body) {
+            new_post_body.value = '';
+            new_post_body.focus();
+        }
+        get_posts('all');
+    }
+
+    // Get following posts
+    if (type === 'following') {
+        document.querySelector("#posts-title").innerHTML = "Following";
+        const profile_card = document.querySelector("#profile-card");
+        if (profile_card) {
+            profile_card.innerHTML = "";
+        }
+        const new_post_body = document.querySelector('#new-post-body');
+        if (new_post_body) {
+            new_post_body.value = '';
+            new_post_body.focus();
+        }
+        get_posts('following');
     }
 }
 
@@ -96,7 +110,7 @@ function load_profile(data) {
     follow_unfollow_link.onclick = () => { follow(data.profile.user_id, type) }
     profile_card.appendChild(follow_unfollow_link);
 
-    posts_push(data.posts);
+    posts_push(data.posts, "all-posts-list");
 
     window.scrollTo(0, 0);
 }
@@ -120,7 +134,7 @@ function create_post() {
                 alert(`Oh-oh: ${error}`);
             } else {
                 alert(`Success: ${message}`);
-                load_container('content-all-posts');
+                load_container('all');
             }
         })
         .catch(error => {
@@ -133,9 +147,11 @@ function enable_post_button() {
     document.querySelector("#post-btn").disabled = this.value.length === 0;
 }
 
-function get_posts() {
+function get_posts(type) {
+    const url = type === "all" ? '/posts/all' : '/posts/following';
+
     // Load posts
-    fetch('/posts/all', { method: 'GET' })
+    fetch(url, { method: 'GET' })
         .then(response => response.json())
         .then(result => {
             const { error } = result;
@@ -143,7 +159,7 @@ function get_posts() {
             if (error) {
                 alert(`Oh-oh: ${error}`);
             } else {
-                posts_push(result);
+                posts_push(result, type);
             }
         })
         .catch(error => {
@@ -151,8 +167,9 @@ function get_posts() {
         });
 }
 
-function posts_push(data) {
-    document.querySelector("#posts-list").innerHTML = "";
+function posts_push(data, type) {
+    const posts_list = document.querySelector(`#posts-list`)
+    posts_list.innerHTML = "";
 
     data.map(element => {
         const card = document.createElement("div");
@@ -213,7 +230,6 @@ function posts_push(data) {
 
         likes_container.style.display = "flex";
         likes_container.style.alignItems = "center";
-        // likes_container.style.border = "1px solid black";
         card.appendChild(likes_container);
 
         comment_link.innerHTML = "Comment";
@@ -223,7 +239,7 @@ function posts_push(data) {
         card.appendChild(comment_link);
 
 
-        document.querySelector("#posts-list").appendChild(card);
+        posts_list.appendChild(card);
     });
 }
 

@@ -112,7 +112,6 @@ def create_post(request):
 
 
 @csrf_exempt
-@login_required
 def load_posts(request):
 
     # List all posts must be via GET
@@ -122,22 +121,9 @@ def load_posts(request):
     # Get user author
     user = request.user
 
-    # Get following user list
-    following = Following.objects.filter(
-        user_id=user.id).values_list("follows_user", flat=True)
-
-    # Get posts from who I'm following
-    # posts_from_following = Post.objects.values(
-    #     "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id__in=following)
+    # Get all posts
     all_posts = Post.objects.values(
         "id", "body", "user__id", "user__username", "user__first_name", "created_at")
-
-    # Get my posts
-    # posts_from_myself = Post.objects.values(
-    #     "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id=user.id)
-
-    # Join posts following + my
-    # all_posts = posts_from_following | posts_from_myself
 
     # Return emails in reverse chronological order and add is_logged field
     posts = all_posts.order_by("-created_at").all().annotate(is_logged=Case(
@@ -233,3 +219,32 @@ def follow_unfollow(request):
             user_id=user.id, follows_user_id=user_id).delete()
 
     return JsonResponse({"message": "Success."}, status=200)
+
+
+@csrf_exempt
+@login_required
+def load_following_posts(request):
+
+    # List all posts from following must be via GET
+    if request.method != "GET":
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+    # Get user
+    user = request.user
+
+    # Get following user list
+    following = Following.objects.filter(
+        user_id=user.id).values_list("follows_user", flat=True)
+
+    # Get posts from who I'm following
+    posts_from_following = Post.objects.values(
+        "id", "body", "user__id", "user__username", "user__first_name", "created_at").filter(user_id__in=following)
+
+    # Return emails in reverse chronological order and add is_logged field
+    posts = posts_from_following.order_by("-created_at").all().annotate(is_logged=Case(
+        When(user__id=user.id,
+             then=Value(True)),
+        default=Value(False),
+        output_field=BooleanField()))
+
+    return JsonResponse(list(posts), safe=False)
