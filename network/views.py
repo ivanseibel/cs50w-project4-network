@@ -12,6 +12,7 @@ from django.urls import reverse
 from network.models import Post
 from django.core import serializers
 from django.db.models import Value
+from django.core.paginator import Paginator
 
 from .models import Following, User
 
@@ -121,6 +122,12 @@ def load_posts(request):
     # Get user author
     user = request.user
 
+    # Get page number
+    try:
+        page = request.GET["page"]
+    except:
+        page = 1
+
     # Get all posts
     all_posts = Post.objects.values(
         "id", "body", "user__id", "user__username", "user__first_name", "created_at")
@@ -132,11 +139,16 @@ def load_posts(request):
         default=Value(False),
         output_field=BooleanField()))
 
-    return JsonResponse(list(posts), safe=False)
+    posts_page = Paginator(posts, 10)
+    pages = posts_page.num_pages
+
+    posts = posts_page.page(page)
+
+    return JsonResponse({"pages": pages, "actual_page": int(page), "posts": list(posts)}, safe=False)
 
 
-@csrf_exempt
-@login_required
+@ csrf_exempt
+@ login_required
 def load_profile(request):
 
     # List all posts must be via GET
@@ -146,8 +158,12 @@ def load_profile(request):
     # Get logged user
     user = request.user
 
-    # Get profile user
+    # Get profile user and page
     profile_user_id = request.GET["user_id"]
+    try:
+        page = int(request.GET["page"])
+    except:
+        page = 1
 
     # Get posts
     posts = Post.objects.values(
@@ -180,11 +196,15 @@ def load_profile(request):
         default=Value(False),
         output_field=BooleanField()))
 
-    return JsonResponse({"profile": profile, "posts": list(posts)}, safe=False)
+    posts_page = Paginator(posts, 10)
+    pages = posts_page.num_pages
+    posts = posts_page.page(page)
+
+    return JsonResponse({"pages": pages, "actual_page": page, "profile": profile, "posts": list(posts)}, safe=False)
 
 
-@csrf_exempt
-@login_required
+@ csrf_exempt
+@ login_required
 def follow_unfollow(request):
 
     # Creating a new post must be via POST
@@ -221,8 +241,8 @@ def follow_unfollow(request):
     return JsonResponse({"message": "Success."}, status=200)
 
 
-@csrf_exempt
-@login_required
+@ csrf_exempt
+@ login_required
 def load_following_posts(request):
 
     # List all posts from following must be via GET
@@ -231,6 +251,12 @@ def load_following_posts(request):
 
     # Get user
     user = request.user
+
+    # Get page number
+    try:
+        page = request.GET["page"]
+    except:
+        page = 1
 
     # Get following user list
     following = Following.objects.filter(
@@ -247,4 +273,9 @@ def load_following_posts(request):
         default=Value(False),
         output_field=BooleanField()))
 
-    return JsonResponse(list(posts), safe=False)
+    posts_page = Paginator(posts, 10)
+    pages = posts_page.num_pages
+
+    posts = posts_page.page(page)
+
+    return JsonResponse({"pages": pages, "actual_page": int(page), "posts": list(posts)}, safe=False)
