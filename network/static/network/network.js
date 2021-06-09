@@ -176,6 +176,7 @@ function posts_push(data) {
         const heart_icon = document.createElement("i");
         const number_of_like = document.createElement("span");
         const likes_container = document.createElement("div");
+        const comment_div = document.createElement("div");
         const comment_link = document.createElement("a");
 
         card.className = "card post-card";
@@ -231,7 +232,8 @@ function posts_push(data) {
         comment_link.style.color = "gray";
         comment_link.style.textDecoration = "none";
         comment_link.href = "#";
-        card.appendChild(comment_link);
+        comment_div.appendChild(comment_link);
+        card.appendChild(comment_div);
 
         posts_list.appendChild(card);
     });
