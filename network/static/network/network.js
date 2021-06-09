@@ -186,13 +186,6 @@ function posts_push(data) {
         author_div.appendChild(author);
         card.appendChild(author_div);
 
-        // author_link.appendChild(author);
-        // author_link.style.textDecoration = "none";
-        // author_link.style.color = "black";
-        // author_link.style.cursor = "pointer";
-        // author_link.onclick = () => { get_profile(element.user__id) };
-        // card.appendChild(author_link);
-
         edit_link.innerHTML = "Edit";
         edit_link.href = "#";
         card.appendChild(edit_link);
