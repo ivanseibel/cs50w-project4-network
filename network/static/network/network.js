@@ -169,7 +169,7 @@ function posts_push(data) {
         const author = document.createElement("span");
         const edit_div = document.createElement("div");
         const edit_link = document.createElement("a");
-        const edit_span = document.createElement("span");
+        const body_div = document.createElement("div");
         const body = document.createElement("span");
         const timestamp = document.createElement("span");
         const heart_icon_link = document.createElement("a");
@@ -193,12 +193,18 @@ function posts_push(data) {
         if (element.is_logged) {
             edit_link.innerHTML = "Edit";
             edit_link.href = "#";
+            edit_link.id = `edit-link-${element.id}`;
+            edit_link.onclick = () => { load_to_edit(element.id); };
+            edit_div.id = `edit-div-${element.id}`;
             edit_div.appendChild(edit_link)
             card.appendChild(edit_div);
         }
 
         body.innerHTML = element.body;
-        card.appendChild(body);
+        body.id = `body-${element.id}`;
+        body_div.id = `body-div-${element.id}`;
+        body_div.appendChild(body);
+        card.appendChild(body_div);
 
         const date = new Date(element.created_at);
         timestamp.innerHTML = date.toLocaleString('en-US', {
@@ -383,4 +389,56 @@ function update_pagination(data) {
 
     document.querySelector("#pagination-container").innerHTML = "";
     document.querySelector("#pagination-container").appendChild(ul);
+}
+
+function load_to_edit(post_id) {
+    const body = document.querySelector(`#body-${post_id}`);
+    const body_div = document.querySelector(`#body-div-${post_id}`);
+    const edit_link = document.querySelector(`#edit-link-${post_id}`);
+    const edit_div = document.querySelector(`#edit-div-${post_id}`);
+
+    body.hidden = true;
+
+    edit_link.innerHTML = "Save";
+    edit_link.onclick = () => { save_edited_post(post_id, body) };
+
+    const textarea = document.createElement("textarea");
+    textarea.id = `edit-body-input-${post_id}`;
+    textarea.value = body.innerHTML;
+
+    const cancel_link = document.createElement("a");
+    cancel_link.innerHTML = "Cancel";
+    cancel_link.href = "#";
+    cancel_link.id = `cancel-link-${post_id}`;
+    cancel_link.style.marginLeft = "10px";
+    cancel_link.onclick = () => { unload_to_edit(post_id); };
+    edit_div.appendChild(cancel_link)
+
+    body_div.appendChild(textarea);
+}
+
+function save_edited_post(post_id, body) {
+    alert("Post saved!");
+
+    // post to api
+    unload_to_edit(post_id)
+}
+
+function unload_to_edit(post_id) {
+    const body = document.querySelector(`#body-${post_id}`);
+    const body_div = document.querySelector(`#body-div-${post_id}`);
+    const edit_link = document.querySelector(`#edit-link-${post_id}`);
+    const edit_div = document.querySelector(`#edit-div-${post_id}`);
+
+    body.hidden = false;
+
+    edit_link.innerHTML = "Edit";
+    edit_link.onclick = () => { load_to_edit(post_id) };
+
+    const textarea = document.querySelector(`#edit-body-input-${post_id}`);
+    body.innerHTML = textarea.value;
+    body_div.removeChild(textarea);
+
+    const cancel_link = document.querySelector(`#cancel-link-${post_id}`);
+    edit_div.removeChild(cancel_link)
 }
