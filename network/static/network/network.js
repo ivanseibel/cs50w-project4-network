@@ -167,7 +167,9 @@ function posts_push(data) {
         const card = document.createElement("div");
         const author_div = document.createElement("div");
         const author = document.createElement("span");
+        const edit_div = document.createElement("div");
         const edit_link = document.createElement("a");
+        const edit_span = document.createElement("span");
         const body = document.createElement("span");
         const timestamp = document.createElement("span");
         const heart_icon_link = document.createElement("a");
@@ -184,11 +186,15 @@ function posts_push(data) {
         author.style.cursor = "pointer";
         author.onclick = () => { get_profile(element.user__id) };
         author_div.appendChild(author);
+        author_div.style.marginBottom = "10px";
         card.appendChild(author_div);
 
-        edit_link.innerHTML = "Edit";
-        edit_link.href = "#";
-        card.appendChild(edit_link);
+        if (element.is_logged) {
+            edit_link.innerHTML = "Edit";
+            edit_link.href = "#";
+            edit_div.appendChild(edit_link)
+            card.appendChild(edit_div);
+        }
 
         body.innerHTML = element.body;
         card.appendChild(body);
