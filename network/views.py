@@ -279,3 +279,45 @@ def load_following_posts(request):
     posts = posts_page.page(page)
 
     return JsonResponse({"pages": pages, "actual_page": int(page), "posts": list(posts)}, safe=False)
+
+
+@csrf_exempt
+@login_required
+def update_post(request):
+
+    # Updating a new post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Get data from request
+    data = json.loads(request.body)
+
+    # Get user author
+    user = request.user
+
+    # Get contents of body
+    body = data.get("body", "")
+    if not body or body == "":
+        return JsonResponse({
+            "error": "Post must have a content."
+        }, status=400)
+
+    # Get contents of post user id
+    post_id = data.get("post_id", "")
+    if not post_id or post_id == "":
+        return JsonResponse({
+            "error": "You must provide the post id."
+        }, status=400)
+
+    post = Post.objects.get(pk=post_id)
+    post_user_id = post.user_id
+
+    if str(post_user_id) != str(user.id):
+        return JsonResponse({
+            "error": "You don't have permission to update this post."
+        }, status=400)
+
+    post.body = body
+    post.save()
+
+    return JsonResponse({"message": "Post updated successfully."}, status=200)
