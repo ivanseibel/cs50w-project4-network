@@ -405,6 +405,7 @@ function load_to_edit(post_id) {
     const textarea = document.createElement("textarea");
     textarea.id = `edit-body-input-${post_id}`;
     textarea.value = body.innerHTML;
+    body_div.appendChild(textarea);
 
     const cancel_link = document.createElement("a");
     cancel_link.innerHTML = "Cancel";
@@ -414,7 +415,7 @@ function load_to_edit(post_id) {
     cancel_link.onclick = () => { unload_to_edit(post_id); };
     edit_div.appendChild(cancel_link)
 
-    body_div.appendChild(textarea);
+    textarea.focus();
 }
 
 function unload_to_edit(post_id) {
