@@ -112,7 +112,7 @@ function create_post() {
     const body = document.querySelector('#new-post-body').value;
 
     // Create post
-    fetch('/posts', {
+    fetch('/posts/create', {
         method: 'POST',
         body: JSON.stringify({
             body,
@@ -400,7 +400,7 @@ function load_to_edit(post_id) {
     body.hidden = true;
 
     edit_link.innerHTML = "Save";
-    edit_link.onclick = () => { save_edited_post(post_id, body) };
+    edit_link.onclick = () => { update_post(post_id, textarea.value) };
 
     const textarea = document.createElement("textarea");
     textarea.id = `edit-body-input-${post_id}`;
@@ -415,13 +415,6 @@ function load_to_edit(post_id) {
     edit_div.appendChild(cancel_link)
 
     body_div.appendChild(textarea);
-}
-
-function save_edited_post(post_id, body) {
-    alert("Post saved!");
-
-    // post to api
-    unload_to_edit(post_id)
 }
 
 function unload_to_edit(post_id) {
@@ -441,4 +434,28 @@ function unload_to_edit(post_id) {
 
     const cancel_link = document.querySelector(`#cancel-link-${post_id}`);
     edit_div.removeChild(cancel_link)
+}
+
+function update_post(post_id, body) {
+    // Update post
+    fetch('/posts/update', {
+        method: 'POST',
+        body: JSON.stringify({
+            body,
+            post_id,
+        })
+    })
+        .then(response => response.json())
+        .then(result => {
+            const { error, message } = result;
+
+            if (error) {
+                alert(`Oh-oh: ${error}`);
+            } else {
+                unload_to_edit(post_id);
+            }
+        })
+        .catch(error => {
+            alert(`Oh-oh: ${error}`);
+        });
 }
