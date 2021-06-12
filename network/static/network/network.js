@@ -190,9 +190,10 @@ function posts_push(data) {
 
         if (element.is_logged) {
             edit_link.innerHTML = "Edit";
-            edit_link.href = "#";
             edit_link.id = `edit-link-${element.id}`;
             edit_link.onclick = () => { load_to_edit(element.id); };
+            edit_link.style.color = "blue";
+            edit_link.style.cursor = "pointer";
             edit_div.id = `edit-div-${element.id}`;
             edit_div.appendChild(edit_link)
             card.appendChild(edit_div);
