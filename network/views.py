@@ -11,10 +11,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from network.models import Post
 from django.core import serializers
-from django.db.models import Value
+from django.db.models import Value, Count
 from django.core.paginator import Paginator
 
-from .models import Following, User
+from .models import Following, Like, User
 
 
 def index(request):
@@ -130,7 +130,13 @@ def load_posts(request):
 
     # Get all posts
     all_posts = Post.objects.values(
-        "id", "body", "user__id", "user__username", "user__first_name", "created_at")
+        "id",
+        "body",
+        "user__id",
+        "user__username",
+        "user__first_name",
+        "created_at"
+    ).annotate(like_count=Count('like'))
 
     # Return emails in reverse chronological order and add is_logged field
     posts = all_posts.order_by("-created_at").all().annotate(is_logged=Case(
@@ -321,3 +327,39 @@ def update_post(request):
     post.save()
 
     return JsonResponse({"message": "Post updated successfully."}, status=200)
+
+
+@csrf_exempt
+@login_required
+def like(request):
+
+    # Creating a new post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    # Get data from request
+    data = json.loads(request.body)
+
+    # Get user author
+    user = request.user
+
+    # Get contents of post
+    post_id = data.get("post_id", "")
+    if not post_id or post_id == "":
+        return JsonResponse({
+            "error": "You must provide a post id."
+        }, status=400)
+
+    # Check if is already liked
+    liked = Like.objects.filter(post_id=post_id, user_id=user.id)
+
+    # If already liked, delete
+    if liked:
+        liked.delete()
+    else:
+        liked = Like(user_id=user.id, post_id=post_id)
+        liked.save()
+
+    like_count = Like.objects.filter(post_id=post_id).count()
+
+    return JsonResponse({"like_count": like_count}, status=200)

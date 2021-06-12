@@ -125,7 +125,6 @@ function create_post() {
             if (error) {
                 alert(`Oh-oh: ${error}`);
             } else {
-                alert(`Success: ${message}`);
                 load_container('all');
             }
         })
@@ -168,11 +167,10 @@ function posts_push(data) {
         const author_div = document.createElement("div");
         const author = document.createElement("span");
         const edit_div = document.createElement("div");
-        const edit_link = document.createElement("a");
+        const edit_link = document.createElement("span");
         const body_div = document.createElement("div");
         const body = document.createElement("span");
         const timestamp = document.createElement("span");
-        const heart_icon_link = document.createElement("a");
         const heart_icon = document.createElement("i");
         const number_of_like = document.createElement("span");
         const likes_container = document.createElement("div");
@@ -192,9 +190,10 @@ function posts_push(data) {
 
         if (element.is_logged) {
             edit_link.innerHTML = "Edit";
-            edit_link.href = "#";
             edit_link.id = `edit-link-${element.id}`;
             edit_link.onclick = () => { load_to_edit(element.id); };
+            edit_link.style.color = "blue";
+            edit_link.style.cursor = "pointer";
             edit_div.id = `edit-div-${element.id}`;
             edit_div.appendChild(edit_link)
             card.appendChild(edit_div);
@@ -220,12 +219,16 @@ function posts_push(data) {
         heart_icon.className = element.like_count > 0 ? "bi-heart-fill" : "bi-heart";
         heart_icon.style.color = element.like_count > 0 ? "red" : null;
 
-        heart_icon_link.href = "#";
-        card.appendChild(heart_icon_link);
-        heart_icon_link.appendChild(heart_icon);
-        likes_container.appendChild(heart_icon_link);
+        heart_icon.id = `heart-icon-${element.id}`;
+        if (document.querySelector("#user-username")) {
+            heart_icon.onclick = () => { like(element.id) }
+            heart_icon.style.cursor = "pointer";
+        }
+        card.appendChild(heart_icon);
+        likes_container.appendChild(heart_icon);
 
         number_of_like.innerHTML = element.like_count > 0 ? element.like_count : 0;
+        number_of_like.id = `number-of-like-${element.id}`;
         number_of_like.style.marginLeft = "5px";
         number_of_like.style.fontSize = "1.2rem";
         likes_container.appendChild(number_of_like);
@@ -459,4 +462,37 @@ function update_post(post_id, body) {
         .catch(error => {
             alert(`Oh-oh: ${error}`);
         });
+}
+
+function like(post_id) {
+    // Like
+    fetch('/likes', {
+        method: 'POST',
+        body: JSON.stringify({
+            post_id,
+        })
+    })
+        .then(response => response.json())
+        .then(result => {
+            const { error, like_count } = result;
+
+            if (error) {
+                alert(`Oh-oh: ${error}`);
+            } else {
+                update_like_count(post_id, like_count);
+            }
+        })
+        .catch(error => {
+            alert(`Oh-oh: ${error}`);
+        });
+}
+
+function update_like_count(post_id, new_count) {
+    const heart_icon = document.querySelector(`#heart-icon-${post_id}`);
+    const number_of_like = document.querySelector(`#number-of-like-${post_id}`);
+
+    number_of_like.innerHTML = new_count.toString();
+
+    heart_icon.className = new_count > 0 ? "bi-heart-fill" : "bi-heart";
+    heart_icon.style.color = new_count > 0 ? "red" : null;
 }
