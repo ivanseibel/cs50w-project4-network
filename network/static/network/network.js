@@ -228,6 +228,7 @@ function posts_push(data) {
         likes_container.appendChild(heart_icon);
 
         number_of_like.innerHTML = element.like_count > 0 ? element.like_count : 0;
+        number_of_like.id = `number-of-like-${element.id}`;
         number_of_like.style.marginLeft = "5px";
         number_of_like.style.fontSize = "1.2rem";
         likes_container.appendChild(number_of_like);
