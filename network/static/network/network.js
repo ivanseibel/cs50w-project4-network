@@ -463,3 +463,36 @@ function update_post(post_id, body) {
             alert(`Oh-oh: ${error}`);
         });
 }
+
+function like(post_id) {
+    // Like
+    fetch('/likes', {
+        method: 'POST',
+        body: JSON.stringify({
+            post_id,
+        })
+    })
+        .then(response => response.json())
+        .then(result => {
+            const { error, like_count } = result;
+
+            if (error) {
+                alert(`Oh-oh: ${error}`);
+            } else {
+                update_like_count(post_id, like_count);
+            }
+        })
+        .catch(error => {
+            alert(`Oh-oh: ${error}`);
+        });
+}
+
+function update_like_count(post_id, new_count) {
+    const heart_icon = document.querySelector(`#heart-icon-${post_id}`);
+    const number_of_like = document.querySelector(`#number-of-like-${post_id}`);
+
+    number_of_like.innerHTML = new_count.toString();
+
+    heart_icon.className = new_count > 0 ? "bi-heart-fill" : "bi-heart";
+    heart_icon.style.color = new_count > 0 ? "red" : null;
+}
