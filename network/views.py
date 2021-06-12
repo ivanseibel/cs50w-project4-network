@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from network.models import Post
 from django.core import serializers
-from django.db.models import Value
+from django.db.models import Value, Count
 from django.core.paginator import Paginator
 
 from .models import Following, User
