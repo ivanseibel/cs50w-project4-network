@@ -125,7 +125,6 @@ function create_post() {
             if (error) {
                 alert(`Oh-oh: ${error}`);
             } else {
-                alert(`Success: ${message}`);
                 load_container('all');
             }
         })
