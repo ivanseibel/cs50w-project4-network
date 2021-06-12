@@ -167,7 +167,7 @@ function posts_push(data) {
         const author_div = document.createElement("div");
         const author = document.createElement("span");
         const edit_div = document.createElement("div");
-        const edit_link = document.createElement("a");
+        const edit_link = document.createElement("span");
         const body_div = document.createElement("div");
         const body = document.createElement("span");
         const timestamp = document.createElement("span");
