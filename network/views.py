@@ -130,7 +130,13 @@ def load_posts(request):
 
     # Get all posts
     all_posts = Post.objects.values(
-        "id", "body", "user__id", "user__username", "user__first_name", "created_at")
+        "id",
+        "body",
+        "user__id",
+        "user__username",
+        "user__first_name",
+        "created_at"
+    ).annotate(like_count=Count('like'))
 
     # Return emails in reverse chronological order and add is_logged field
     posts = all_posts.order_by("-created_at").all().annotate(is_logged=Case(
