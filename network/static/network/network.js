@@ -171,7 +171,6 @@ function posts_push(data) {
         const body_div = document.createElement("div");
         const body = document.createElement("span");
         const timestamp = document.createElement("span");
-        const heart_icon_link = document.createElement("a");
         const heart_icon = document.createElement("i");
         const number_of_like = document.createElement("span");
         const likes_container = document.createElement("div");
