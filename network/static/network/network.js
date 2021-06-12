@@ -220,6 +220,12 @@ function posts_push(data) {
         heart_icon.style.color = element.like_count > 0 ? "red" : null;
 
         heart_icon.id = `heart-icon-${element.id}`;
+        if (document.querySelector("#user-username")) {
+            heart_icon.onclick = () => { like(element.id) }
+            heart_icon.style.cursor = "pointer";
+        }
+        card.appendChild(heart_icon);
+        likes_container.appendChild(heart_icon);
 
         number_of_like.innerHTML = element.like_count > 0 ? element.like_count : 0;
         number_of_like.style.marginLeft = "5px";
