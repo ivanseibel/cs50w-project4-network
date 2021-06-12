@@ -219,10 +219,7 @@ function posts_push(data) {
         heart_icon.className = element.like_count > 0 ? "bi-heart-fill" : "bi-heart";
         heart_icon.style.color = element.like_count > 0 ? "red" : null;
 
-        heart_icon_link.href = "#";
-        card.appendChild(heart_icon_link);
-        heart_icon_link.appendChild(heart_icon);
-        likes_container.appendChild(heart_icon_link);
+        heart_icon.id = `heart-icon-${element.id}`;
 
         number_of_like.innerHTML = element.like_count > 0 ? element.like_count : 0;
         number_of_like.style.marginLeft = "5px";
