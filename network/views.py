@@ -14,7 +14,7 @@ from django.core import serializers
 from django.db.models import Value, Count
 from django.core.paginator import Paginator
 
-from .models import Following, User
+from .models import Following, Like, User
 
 
 def index(request):
