@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function load_container(type, page) {
-
     // Get all posts
-    if (type === 'all') {
+    const posts_title = document.querySelector('#posts-title');
+    if (type === 'all' && posts_title) {
         document.querySelector("#posts-title").innerHTML = "All Posts";
         const profile_card = document.querySelector("#profile-card");
         if (profile_card) {
@@ -66,7 +66,9 @@ function load_container(type, page) {
 function load_profile(data) {
     // Hide post textarea
     const new_post_card = document.querySelector("#new-post-card");
-    new_post_card.hidden = true;
+    if (new_post_card) {
+        new_post_card.hidden = true;
+    }
 
     // Show user name
     document.querySelector("#posts-title").innerHTML = `${data.profile.user_first_name} ${data.profile.user_last_name}`;
@@ -86,51 +88,44 @@ function load_profile(data) {
     profile_card.appendChild(following);
     profile_card.appendChild(followers);
 
-    const follow_unfollow_link = document.createElement("a");
-    const follow_unfollow = document.createElement("span");
-    const is_same_user = data.profile.is_same_user;
-    const is_following = data.profile.is_following;
-    let type = "";
-    if (!is_same_user) {
-        type = is_following ? "unfollow" : "follow";
-        follow_unfollow.innerHTML = type;
+    if (document.querySelector("#user-username")) {
+        const follow_unfollow_link = document.createElement("a");
+        const follow_unfollow = document.createElement("span");
+        const is_same_user = data.profile.is_same_user;
+        const is_following = data.profile.is_following;
+        let type = "";
+        if (!is_same_user) {
+            type = is_following ? "unfollow" : "follow";
+            follow_unfollow.innerHTML = type;
+        }
+        follow_unfollow_link.appendChild(follow_unfollow);
+        follow_unfollow_link.style.marginLeft = "15px";
+        follow_unfollow_link.style.color = "blue";
+        follow_unfollow_link.style.cursor = "pointer";
+        follow_unfollow_link.onclick = () => { follow(data.profile.user_id, type) }
+        profile_card.appendChild(follow_unfollow_link);
     }
-    follow_unfollow_link.appendChild(follow_unfollow);
-    follow_unfollow_link.style.marginLeft = "15px";
-    follow_unfollow_link.style.color = "blue";
-    follow_unfollow_link.style.cursor = "pointer";
-    follow_unfollow_link.onclick = () => { follow(data.profile.user_id, type) }
-    profile_card.appendChild(follow_unfollow_link);
 
     posts_push(data);
 
     window.scrollTo(0, 0);
 }
 
-function create_post() {
+async function create_post() {
     // Get params
     const body = document.querySelector('#new-post-body').value;
 
     // Create post
-    fetch('/posts/create', {
+    const fetch_response = await fetch('/posts/create', {
         method: 'POST',
         body: JSON.stringify({
             body,
         })
-    })
-        .then(response => response.json())
-        .then(result => {
-            const { error, message } = result;
+    });
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                load_container('all');
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    const json_response = await fetch_response.json();
+
+    load_container('all');
 }
 
 function enable_post_button() {
@@ -138,24 +133,15 @@ function enable_post_button() {
     document.querySelector("#post-btn").disabled = this.value.length === 0;
 }
 
-function get_posts(type = "all", page = 1) {
+async function get_posts(type = "all", page = 1) {
     const url = type === "all" ? '/posts/all' : '/posts/following';
 
     // Load posts
-    fetch(`${url}?page=${page}`, { method: 'GET' })
-        .then(response => response.json())
-        .then(result => {
-            const { error } = result;
+    const fetch_response = await fetch(`${url}?page=${page}`, { method: 'GET' });
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                posts_push(result);
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    const json_response = await fetch_response.json();
+
+    posts_push(json_response);
 }
 
 function posts_push(data) {
@@ -183,7 +169,7 @@ function posts_push(data) {
         author.className = "h5";
         author.innerHTML = `<strong>${element.user__first_name}</strong>`;
         author.style.cursor = "pointer";
-        author.onclick = () => { get_profile(element.user__id) };
+        author.onclick = () => { get_profile(element.user__id, data.actual_page) };
         author_div.appendChild(author);
         author_div.style.marginBottom = "10px";
         card.appendChild(author_div);
@@ -250,57 +236,47 @@ function posts_push(data) {
     update_pagination(data);
 }
 
-function get_profile(user_id, page) {
+async function get_profile(user_id, page) {
     // Load profile
-    fetch(`/profile?user_id=${user_id}&page=${page}`, { method: 'GET' })
-        .then(response => response.json())
-        .then(result => {
-            const { error } = result;
+    const fetch_response = await fetch(`/profile?user_id=${user_id}&page=${page}`, { method: 'GET' });
+    const json_response = await fetch_response.json();
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                load_profile(result);
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    load_profile(json_response);
 }
 
-function follow(user_id, type) {
+async function follow(user_id, type) {
     // Follow new user if type = follow and unfollow user if type = unfollow
-
-    fetch('/follow', {
+    const fetch_response = await fetch('/follow', {
         method: 'POST',
         body: JSON.stringify({
             user_id: user_id,
             type: type,
         })
-    })
-        .then(response => response.json())
-        .then(result => {
-            const { error, message } = result;
+    });
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                get_profile(user_id);
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    const json_response = await fetch_response.json();
+
+    get_profile(user_id);
 }
 
 function update_pagination(data) {
+    const { posts } = data;
+
     const actual_section = document.querySelector("#posts-title").innerHTML;
 
-    const pages = Number(data.pages);
-    const actual_page = Number(data.actual_page);
+    let actual_page = 1;
+    let pages = 1;
+
+    if (posts.length > 0) {
+        pages = Number(data.pages);
+        actual_page = Number(data.actual_page);
+    }
 
     // Only for Profile page
-    const user_id = data.posts[0].user__id;
+    const profile_card = document.querySelector("#profile-card");
+    if (profile_card && !profile_card.hidden && posts.length > 0) {
+        const user_id = data.posts[0].user__id;
+    }
 
     const ul = document.createElement("ul");
     ul.className = "pagination";
@@ -440,51 +416,33 @@ function unload_to_edit(post_id) {
     edit_div.removeChild(cancel_link)
 }
 
-function update_post(post_id, body) {
+async function update_post(post_id, body) {
     // Update post
-    fetch('/posts/update', {
+    const fetch_result = await fetch('/posts/update', {
         method: 'POST',
         body: JSON.stringify({
             body,
             post_id,
         })
-    })
-        .then(response => response.json())
-        .then(result => {
-            const { error, message } = result;
+    });
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                unload_to_edit(post_id);
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    const json_response = await fetch_result.json();
+    unload_to_edit(post_id);
 }
 
-function like(post_id) {
+async function like(post_id) {
     // Like
-    fetch('/likes', {
+    const fetch_response = await fetch('/likes', {
         method: 'POST',
         body: JSON.stringify({
             post_id,
         })
-    })
-        .then(response => response.json())
-        .then(result => {
-            const { error, like_count } = result;
+    });
 
-            if (error) {
-                alert(`Oh-oh: ${error}`);
-            } else {
-                update_like_count(post_id, like_count);
-            }
-        })
-        .catch(error => {
-            alert(`Oh-oh: ${error}`);
-        });
+    const json_response = await fetch_response.json();
+
+    const { like_count } = json_response;
+    update_like_count(post_id, like_count);
 }
 
 function update_like_count(post_id, new_count) {

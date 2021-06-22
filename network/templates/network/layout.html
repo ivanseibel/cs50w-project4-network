@@ -24,7 +24,7 @@
                     <a class="nav-link" href="#"><strong id="user-username">{{ user.username }}</strong></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="btn-all-posts" href="#">All Posts</a>
+                    <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="btn-following" href="#">Following</a>
@@ -34,7 +34,8 @@
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" id="btn-all-posts" href="#">All Posts</a>
+                    <!-- <a class="nav-link" id="btn-all-posts" href="#">All Posts</a> -->
+                    <a class="nav-link" href="{% url 'index' %}">All Posts</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'login' %}">Log In</a>

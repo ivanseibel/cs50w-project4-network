@@ -154,7 +154,7 @@ def load_posts(request):
 
 
 @ csrf_exempt
-@ login_required
+# @ login_required
 def load_profile(request):
 
     # List all posts must be via GET
